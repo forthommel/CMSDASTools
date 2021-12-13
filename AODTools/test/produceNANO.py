@@ -133,6 +133,7 @@ from PhysicsTools.NanoAOD.nano_cff import nanoAOD_customizeMC
 
 #call to customisation function addMonitoring imported from Configuration.DataProcessing.Utils
 process = nanoAOD_customizeMC(process)
+process.genProtonTable.srcPUProtons = cms.InputTag('genPUProtons', 'genPUProtons')
 
 # End of customisation functions
 

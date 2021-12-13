@@ -15,6 +15,7 @@ scram b -j
 
 #add nanoAOD package to include protonReco in MC
 git cms-addpkg PhysicsTools/NanoAOD
+sed -i "s/nanoSequenceOnlyFullSim = .*/nanoSequenceOnlyFullSim = cms.Sequence(cms.Task(protonTablesTask,triggerObjectTablesTask))\n/g" $CMSSW_BASE/src/PhysicsTools/NanoAOD/python/nano_cff.py
 scram b -j
 
 #PPS Direct simulation (not in release yet)
