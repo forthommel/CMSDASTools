@@ -1,8 +1,14 @@
+# Auto generated configuration file
+# using: 
+# cmsDriver.py -s NANO --mc --eventcontent NANOAODSIM --datatier NANOAODSIM --filein file:miniAOD_withProtons.root --conditions auto:phase1_2017_realistic -n 100 --era Run2_2018,run2_nanoAOD_106Xv2 --python_filename PPS-RunIISummer20UL18NanoAODv9-00007_1_cfg.py --fileout file:test.root
 import FWCore.ParameterSet.Config as cms
-from Configuration.StandardSequences.Eras import eras
 
-# MC configuration
-# 2017:  https://cms-pdmv.cern.ch/mcm/public/restapi/requests/get_setup/BTV-RunIISummer20UL17NanoAODv9-00018
+# https://gitlab.cern.ch/cms-nanoAOD/nanoaod-doc/-/wikis/Releases/NanoAODv9
+from Configuration.Eras.Era_Run2_2016_HIPM_cff import Run2_2016_HIPM
+from Configuration.Eras.Era_Run2_2016_cff import Run2_2016
+from Configuration.Eras.Era_Run2_2017_cff import Run2_2017
+from Configuration.Eras.Era_Run2_2018_cff import Run2_2018
+from Configuration.Eras.Modifier_run2_nanoAOD_106Xv2_cff import run2_nanoAOD_106Xv2
 
 from FWCore.ParameterSet.VarParsing import VarParsing
 options = VarParsing ('python')
@@ -29,24 +35,18 @@ print("INFO: isData set to", options.isData)
 
 
 if '2016preVFP' in options.era:
-    process = cms.Process('NANO',eras.Run2_2016_HIPM,eras.run2_nanoAOD_106Xv2)
+    process = cms.Process('NANO',Run2_2016_HIPM,run2_nanoAOD_106Xv2)
 elif '2016' in options.era:
-    process = cms.Process('NANO',eras.Run2_2016,eras.run2_nanoAOD_106Xv2)
+    process = cms.Process('NANO',Run2_2016,run2_nanoAOD_106Xv2)
 elif '2017' in options.era:
-    process = cms.Process('NANO',eras.Run2_2017,eras.run2_nanoAOD_106Xv2)
+    process = cms.Process('NANO',Run2_2017,run2_nanoAOD_106Xv2)
 elif '2018' in options.era:
-    process = cms.Process('NANO',eras.Run2_2018,eras.run2_nanoAOD_106Xv2)
-
-#get the configuration to apply
-from CMSDAS-tools.EraConfig import getEraConfiguration
-globalTag = getEraConfiguration(era=options.era,isData=options.isData)
-print("INFO: globalTag set to "+globalTag)
-
+    process = cms.Process('NANO',Run2_2018,run2_nanoAOD_106Xv2)
 
 # import of standard configurations
 process.load('Configuration.StandardSequences.Services_cff')
-process.load("FWCore.MessageLogger.MessageLogger_cfi")
 process.load('SimGeneral.HepPDTESSource.pythiapdt_cfi')
+process.load("FWCore.MessageLogger.MessageLogger_cfi")
 process.load('Configuration.EventContent.EventContent_cff')
 process.load('SimGeneral.MixingModule.mixNoPU_cfi')
 process.load('Configuration.StandardSequences.GeometryRecoDB_cff')
@@ -55,15 +55,14 @@ process.load('PhysicsTools.NanoAOD.nano_cff')
 process.load('Configuration.StandardSequences.EndOfProcess_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 
+process.maxEvents = cms.untracked.PSet(
+    input = cms.untracked.int32(options.maxEvents),
+	output = cms.optional.untracked.allowed(cms.int32,cms.PSet)
+)
+
 # process stdout
 process.MessageLogger.cerr.threshold = cms.untracked.string('')
 process.MessageLogger.cerr.FwkReport.reportEvery = cms.untracked.int32(100)
-
-#process options
-
-process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(options.maxEvents)
-)
 
 # Input source
 process.source = cms.Source("PoolSource",
@@ -72,7 +71,8 @@ process.source = cms.Source("PoolSource",
                             # drop the old event content, since it is empty
                             'drop recoForwardProtons_ctppsProtons_multiRP_RECO', 
                             'drop recoForwardProtons_ctppsProtons_singleRP_RECO'),
-                            duplicateCheckMode = cms.untracked.string('noDuplicateCheck') 
+                            duplicateCheckMode = cms.untracked.string('noDuplicateCheck'),
+							secondaryFileNames = cms.untracked.vstring()
                             )
 
 process.options = cms.untracked.PSet(
@@ -87,7 +87,8 @@ process.configurationMetadata = cms.untracked.PSet(
 )
 
 # Output definition
-process.NANOEDMAODSIMoutput = cms.OutputModule("NanoAODOutputModule",
+
+process.NANOAODSIMoutput = cms.OutputModule("NanoAODOutputModule",
     compressionAlgorithm = cms.untracked.string('LZMA'),
     compressionLevel = cms.untracked.int32(9),
     dataset = cms.untracked.PSet(
@@ -103,6 +104,9 @@ process.NANOEDMAODSIMoutput = cms.OutputModule("NanoAODOutputModule",
 # Other statements
 # global tag
 from Configuration.AlCa.GlobalTag import GlobalTag
+from CMSDASTools.AODTools.EraConfig import getEraConfiguration
+globalTag = getEraConfiguration(era=options.era,isData=options.isData)
+print("INFO: globalTag set to "+globalTag)
 process.GlobalTag = GlobalTag(process.GlobalTag, globalTag, '')
 
 # Need these modifications to use fitVtxY=False option (not recommended by POG)
@@ -111,33 +115,24 @@ process.GlobalTag = GlobalTag(process.GlobalTag, globalTag, '')
 #process.protonTable.tagRecoProtonsMulti=cms.InputTag("ctppsProtons", "multiRP")
 #process.multiRPTable.src=cms.InputTag("ctppsProtons","multiRP")
 
+
 # Path and EndPath definitions
 process.nanoAOD_step = cms.Path(process.nanoSequenceMC)
 process.endjob_step = cms.EndPath(process.endOfProcess)
-process.NANOEDMAODSIMoutput_step = cms.EndPath(process.NANOEDMAODSIMoutput)
-nanoSteps = [process.nanoAOD_step, process.endjob_step, process.NANOEDMAODSIMoutput_step]
-
+process.NANOAODSIMoutput_step = cms.EndPath(process.NANOAODSIMoutput)
 
 # Schedule definition
-process.schedule=cms.Schedule( (p for p in nanoSteps) )
-print(process.schedule)
+process.schedule = cms.Schedule(process.nanoAOD_step,process.endjob_step,process.NANOAODSIMoutput_step)
 from PhysicsTools.PatAlgos.tools.helpers import associatePatAlgosToolsTask
 associatePatAlgosToolsTask(process)
 
 # customisation of the process.
 
-# Automatic addition of the customisation function from PhysicsTools.NanoAOD.nano_cff
+# Automatic addition of the customisation function from Configuration.DataProcessing.Utils
 from PhysicsTools.NanoAOD.nano_cff import nanoAOD_customizeMC 
 
-#call to customisation function nanoAOD_customizeMC imported from PhysicsTools.NanoAOD.nano_cff
-process = nanoAOD_customizeMC(process)
-process.genProtonTable.srcPUProtons = cms.InputTag('genPUProtons', options.instance)
-
-# Automatic addition of the customisation function from Configuration.DataProcessing.Utils
-from Configuration.DataProcessing.Utils import addMonitoring 
-
 #call to customisation function addMonitoring imported from Configuration.DataProcessing.Utils
-process = addMonitoring(process)
+process = nanoAOD_customizeMC(process)
 
 # End of customisation functions
 

@@ -13,12 +13,21 @@ git cms-init
 git clone https://github.com/cms-nanoAOD/nanoAOD-tools.git PhysicsTools/NanoAODTools
 scram b -j
 
-#setup PPS Direct simulation
-git cms-merge-topic orthommel:pps-direct_simu_stdseq-12_3_X
+#add nanoAOD package to include protonReco in MC
+git cms-addpkg PhysicsTools/NanoAOD
 scram b -j
 
+#PPS Direct simulation (not in release yet)
+git cms-merge-topic forthommel:pps-direct_simu_stdseq-12_3_X
+scram b -j
+
+#GenProton info (not in release yet)
+git cms-merge-topic forthommel:pps-nanoaod_gen_proton_table-12_2_X
+scram b -j
+
+
 #This package
-git clone https://github.com/michael-pitt/CMSDAS-tools.git
+git clone https://github.com/michael-pitt/CMSDASTools.git
 scram b -j
 ```
 
@@ -64,33 +73,21 @@ Then call:
 python scripts/processDataset.py  -i /SingleMuon/Run2017H-UL2017_MiniAODv1_NanoAODv2-v1/NANOAOD -o /eos/user/p/psilva/data/sdanalysis/SingleMuon/Chunks
 ```
 
-## Simulation of signal and background
+## Making NANOAOD (with proton info)
 
-In [LowPU2017H/data/cards](https://github.com/michael-pitt/PPSTools/blob/main/LowPU2017H/data/cards) pythia fragments of the inclusive and diffractive event can be found. 
+The current version of NanoAOD MC samples doesn't include simulated protons. Recently a proton simulation module has been developed, and it is being tested. We will use this new module to add protons to the MC simulation sample and produce nanoAOD with corresponding proton content.
 
-### MINIAOD
-
-Generation of the MINIAOD using pythia fragments can be done using the [gen_miniaod.sh](https://github.com/michael-pitt/PPSTools/blob/main/LowPU2017H/scripts/gen_miniaod.sh) script.
-```
-gen_miniaod.sh $card $seed
-```
-Example:
-```
-voms-proxy-init --voms cms
-scripts/gen_miniaod.sh data/cards/dijet_Pt100_TuneCP5_13TeV 0
-```
-### NANOAOD
 To produce NANOAODs the following sequence should be executed: MINIAOD->MINIAOD+Protons->NANOAOD:
 
    1. Proton simulation: the code will propagate all final state protons within the RP acceptance, simulate PPS hits, and run the proton reconstruction module.
 ```
-cmsRun $CMSSW_BASE/src/PPSTools/NanoTools/test/addProtons_miniaod.py inputFiles=file:miniAOD.root instance=""
+cmsRun $CMSSW_BASE/src/CMSDASTools/AODTools/test/addProtons_miniaod.py inputFiles=file:miniAOD.root instance=""
 ```
 NOTE: Check the input file which collection is used to store the pileup protons.
    2. MINIAOD->NANOAOD step
 To produce nanoAOD from miniAOD run:
 ```
-cmsRun $CMSSW_BASE/src/PPSTools/NanoTools/test/produceNANO.py inputFiles=file:miniAOD_withProtons.root instance=""
+cmsRun $CMSSW_BASE/src/CMSDASTools/AODTools/test/produceNANO.py inputFiles=file:miniAOD_withProtons.root
 ```
 ### Submitting to condor
 To produce all steps in one shot, you can run the following script:

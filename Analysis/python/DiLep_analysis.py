@@ -8,8 +8,8 @@ from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
 from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collection
 
 ### Proton selector be replaced by preprocessing module
-from CMSDAS-tools.Analysis.objectSelector import ProtonSelector
-from CMSDAS-tools.Analysis.objectSelector import ElectronSelector, MuonSelector
+from CMSDASTools.Analysis.objectSelector import ProtonSelector
+from CMSDASTools.Analysis.objectSelector import ElectronSelector, MuonSelector
 
 class Analysis(Module):
     def __init__(self, channel):
