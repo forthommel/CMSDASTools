@@ -6,17 +6,18 @@ keep run*
 keep event*
 
 #keep nanoAOD content
-keep nIsoTrack
-keep MET_pt
-keep MET_phi
-keep MET_sumEt
-keep SoftActivityJetHT10
-keep SoftActivityJetNjets10
-keep PV_npvs*
-keep PV_ndof
+keep PV_*
 keep GenProton*
 
 #keep custom variables
-keep nano*
-
+keep nLepCand
+keep LepCand*
+keep nRecoProtCand
+keep ProtCand*
+keep nJets
+keep Lep*
+keep InvMass
+keep Yll
+keep pTll
+keep Acopl
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import os, sys
+import os, sys, math
 import ROOT
 ROOT.PyConfig.IgnoreCommandLineOptions = True
 from importlib import import_module
@@ -12,8 +12,9 @@ from CMSDASTools.Analysis.objectSelector import ProtonSelector
 from CMSDASTools.Analysis.objectSelector import ElectronSelector, MuonSelector
 
 class Analysis(Module):
-    def __init__(self, channel):
+    def __init__(self, channel, isMC):
         self.channel = channel
+        self.isMC    = isMC
         pass
 
     def beginJob(self):
@@ -25,38 +26,39 @@ class Analysis(Module):
     def beginFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
     
         self.out = wrappedOutputTree
-        self.out.branch("nano_nJets",     "I");
-        self.out.branch("nano_nProtons",  "I");
-        self.out.branch("nano_nLeptons",  "I");
-        self.out.branch("nano_LepID",     "I",  lenVar = "nano_nLeptons");
-        self.out.branch("nano_LepPT",     "F",  lenVar = "nano_nLeptons");
-        self.out.branch("nano_LepEta",    "F",  lenVar = "nano_nLeptons");
-        self.out.branch("nano_LepPhi",    "F",  lenVar = "nano_nLeptons");
-        self.out.branch("nano_LepIso",    "F",  lenVar = "nano_nLeptons");
-        self.out.branch("nano_LepIsIso",  "O",  lenVar = "nano_nLeptons");
-        self.out.branch("nano_LepDxy",    "F",  lenVar = "nano_nLeptons");
-        self.out.branch("nano_LepDz",     "F",  lenVar = "nano_nLeptons");
-        self.out.branch("nano_mll",       "F");
-        self.out.branch("nano_Yll",       "F");
-        self.out.branch("nano_Ptll",      "F");
-        self.out.branch("nano_Etall",     "F");
-        self.out.branch("nano_Phill",     "F");
-        self.out.branch("nano_mjets",     "F");
-        self.out.branch("nano_Yjets",     "F");
-        self.out.branch("nano_Phijets",   "F");
-        self.out.branch("nano_PTjets",    "F");
-        self.out.branch("nano_JetPT",     "F");
-        self.out.branch("nano_JetEta",    "F");
-        self.out.branch("nano_JetPhi",    "F");
-        self.out.branch("nano_WMT",       "F");
-        self.out.branch("nano_WPT",       "F");
-        self.out.branch("nano_WPhi",      "F");
-        self.out.branch("nano_xip",       "F");
-        self.out.branch("nano_xin",       "F");
-        self.out.branch("nano_tp",        "F");
-        self.out.branch("nano_tn",        "F");
-        self.out.branch("nano_mX",        "F");
-        self.out.branch("nano_YX",        "F");
+        self.out.branch("nLepCand",          "I");
+        self.out.branch("LepCand_id",        "I",  lenVar = "nLepCand");
+        self.out.branch("LepCand_pt",        "F",  lenVar = "nLepCand");
+        self.out.branch("LepCand_eta",       "F",  lenVar = "nLepCand");
+        self.out.branch("LepCand_phi",       "F",  lenVar = "nLepCand");
+        self.out.branch("LepCand_charge",    "I",  lenVar = "nLepCand");
+        self.out.branch("lep_dxy",           "F",  lenVar = "nLepCand");
+        self.out.branch("lep_dz",            "F",  lenVar = "nLepCand");
+        self.out.branch("nRecoProtCand",     "I");
+        self.out.branch("ProtCand_xi",       "F",  lenVar = "nRecoProtCand");
+        self.out.branch("ProtCand_t",        "F",  lenVar = "nRecoProtCand");
+        self.out.branch("ProtCand_ThX",      "F",  lenVar = "nRecoProtCand");
+        self.out.branch("ProtCand_ThY",      "F",  lenVar = "nRecoProtCand");
+        self.out.branch("ProtCand_rpid",     "I",  lenVar = "nRecoProtCand");
+        self.out.branch("ProtCand_arm",      "I",  lenVar = "nRecoProtCand");
+        self.out.branch("ProtCand_ismultirp","I",  lenVar = "nRecoProtCand");
+        self.out.branch("ProtCand_rpid",     "I",  lenVar = "nRecoProtCand");
+        self.out.branch("ProtCand_rpid",     "I",  lenVar = "nRecoProtCand");
+        self.out.branch("nJets",             "I");
+        self.out.branch("Lep0Pt",            "F");
+        self.out.branch("Lep1Pt",            "F");
+        self.out.branch("Lep0Eta",           "F");
+        self.out.branch("Lep1Eta",           "F");
+        self.out.branch("Lep0Phi",           "F");
+        self.out.branch("Lep1Phi",           "F");
+        self.out.branch("InvMass",           "F");
+        self.out.branch("Yll",               "F");
+        self.out.branch("pTll",              "F");
+        self.out.branch("Acopl",             "F");
+        if self.isMC:
+            self.out.branch("gen_mll",           "F");
+            self.out.branch("gen_Yll",           "F");
+ 
         
     def endFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         pass
@@ -68,9 +70,6 @@ class Analysis(Module):
         electrons = Collection(event, "Electron")
         for el in electrons:
             if not elSel.evalElectron(el): continue
-            isiso=el.mvaFall17V2Iso_WP80
-            setattr(el, 'isiso', isiso)
-            setattr(el, 'iso', el.pfRelIso03_all)
             setattr(el, 'id', 11)
             event.selectedElectrons.append(el)
         event.selectedElectrons.sort(key=lambda x: x.pt, reverse=True)
@@ -83,8 +82,6 @@ class Analysis(Module):
         muons = Collection(event, "Muon")
         for mu in muons:
             if not muSel.evalMuon(mu): continue
-            setattr(mu, 'isiso', True if mu.pfRelIso04_all<0.15 else False)
-            setattr(mu, 'iso', mu.pfRelIso04_all)
             setattr(mu, 'id', 13)
             event.selectedMuons.append(mu)
 
@@ -92,25 +89,24 @@ class Analysis(Module):
 
 
     def selectAK4Jets(self, event):
-        ## Selected jets: pT>25, |eta|<4.7, pass tight ID
+        ## Selected jets: pT>30, |eta|<4.7, pass tight ID
         
         event.selectedAK4Jets = []
         ak4jets = Collection(event, "Jet")
         for j in ak4jets:
 
-            if j.pt<25 : 
+            if j.pt<30 : 
                 continue
 
             if abs(j.eta) > 4.7:
                 continue
             
             #require tight (2^1) or tightLepVeto (2^2) [https://twiki.cern.ch/twiki/bin/view/CMS/JetID#nanoAOD_Flags]
-            if j.jetId<2 : 
+            if j.jetId<4: 
                 continue
                 
-            #check overlap with selected leptons which are considered to be isolated 
-            #(isiso attribute set by the select{Electrons,Muons} methods
-            deltaR_to_leptons=[ j.p4().DeltaR(lep.p4()) for lep in event.selectedMuons+event.selectedElectrons if lep.isiso ]
+            #check overlap with selected leptons 
+            deltaR_to_leptons=[ j.p4().DeltaR(lep.p4()) for lep in event.selectedMuons+event.selectedElectrons ]
             hasLepOverlap=sum( [dR<0.4 for dR in deltaR_to_leptons] )
             if hasLepOverlap>0: continue
 
@@ -121,33 +117,54 @@ class Analysis(Module):
     def selectProtons(self, event, prSel):
         ## access a collection of protons and create a new collection based on this
         
-        event.selectedProtons = []
-        protons = Collection(event, "Proton_multiRP")
-        tracks = Collection(event, "PPSLocalTrack")
+        event.selectedProtonsS = []
+        protonsS = Collection(event, "Proton_singleRP")
 
-        for idx, pr in enumerate(protons):
-            #find associated tracks:
-            for tr in tracks:
-              if idx != tr.multiRPProtonIdx: continue
-              if tr.decRPId // 10 % 10 == 0:  # second digit of RPId is 0 or 2 for near or far detector
-                setattr(pr, 'xnear', tr.x)
-                setattr(pr, 'ynear', tr.y)
-              else:
-                setattr(pr, 'xfar', tr.x)
-                setattr(pr, 'yfar', tr.y)
+        for idx, pr in enumerate(protonsS):
             
             #store accepted protons
-            if prSel.evalProton(pr): event.selectedProtons.append(pr)
-        
-        #sort selected protons
-        event.selectedProtons.sort(key=lambda x: x.xi, reverse=True)
+            setattr(pr, 'method', 0)
+            setattr(pr, 't', -1)
+            setattr(pr, 'ThX', 999)
+            setattr(pr, 'ThY', pr.thetaY)
+            setattr(pr, 'rpid', pr.decRPId)
+            setattr(pr, 'arm', pr.decRPId // 100)
+            if prSel.evalProton(pr): event.selectedProtonsS.append(pr)
+        event.selectedProtonsS.sort(key=lambda x: x.xi, reverse=True)
 
+        event.selectedProtonsM = []
+        protonsM = Collection(event, "Proton_multiRP")
+        for idx, pr in enumerate(protonsM):
+            
+            #store accepted protons
+            setattr(pr, 'method', 1)
+            setattr(pr, 'ThX', pr.thetaX)
+            setattr(pr, 'ThY', pr.thetaY)
+            setattr(pr, 'rpid', -1)
+            setattr(pr, 'arm', pr.arm)
+            if prSel.evalProton(pr): event.selectedProtonsM.append(pr)        
+        event.selectedProtonsM.sort(key=lambda x: x.xi, reverse=True)
+		
+		# combine SingleRP and MultiRP protons
+        event.selectedProtons = event.selectedProtonsS + event.selectedProtonsM
+
+    def selectGenProtons(self, event):
+        ## access a collection of generator protons and create a new collection based on this
+        
+        event.selectedGenProtons = []
+		
+        if self.isMC:
+            genprotons = Collection(event, "GenProton")
+
+            for idx, pr in enumerate(genprotons):
+              if pr.isPU: continue
+              event.selectedGenProtons.append(pr)
 
     def analyze(self, event):
         """process event, return True (go to next module) or False (fail, go to next event)"""
         
         #initiate proton selector tools:
-        prSel = ProtonSelector('2017H')
+        prSel = ProtonSelector('2018C')
         elSel = ElectronSelector()
         muSel = MuonSelector()
         
@@ -156,49 +173,32 @@ class Analysis(Module):
         self.selectElectrons(event, elSel)
         self.selectAK4Jets(event)
         self.selectProtons(event, prSel)
+        self.selectGenProtons(event)
         
         #apply event selection depending on the channel:
         if self.channel=="mu":
             
-            # veto events with electrons
+            # Select events with exactly 2 muons and 0 electrons
             if len(event.selectedElectrons): return False
+            if not len(event.selectedMuons)==2: return False
             
-            # veto events with 0 or >2 muons
-            if len(event.selectedMuons)==0: return False
-            if len(event.selectedMuons)>2: return False
-            
-            #DY selection (2 OS muons)
-            if len(event.selectedMuons)==2:
-                if event.selectedMuons[0].charge==event.selectedMuons[1].charge: return False
+            if event.selectedMuons[0].charge==event.selectedMuons[1].charge: return False
 
         if self.channel=="el":
 
-            # veto events with muons
+            # Select events with exactly 2 electrons and 0 muons
             if len(event.selectedMuons): return False
+            if not len(event.selectedElectrons)==2: return False
             
-            # veto events with 0 or >2 electrons
-            if len(event.selectedElectrons)==0: return False
-            if len(event.selectedElectrons)>2: return False
-
-            #DY selection (2 OS electrons)
-            if len(event.selectedElectrons)==2:
-                if event.selectedElectrons[0].charge==event.selectedElectrons[1].charge: return False
+            if event.selectedElectrons[0].charge==event.selectedElectrons[1].charge: return False
 
         if self.channel=='emu':
             nmu=len(event.selectedMuons)
             nele=len(event.selectedElectrons)
-            if nmu==0 or nele==0 : return False
-            if nmu+nele!=2 : return False
-            if event.selectedMuons[0].charge==event.selectedElectrons[0].charge : return False
+            if nmu!=1 or nele!=1 : return False
 
-        if self.channel=="mj":
-            
-            #select events with at least 2 jets
-            if len(event.selectedAK4Jets)<2: return False
-            
-            #leading jet pT >140 (trigger treshold)
-            if event.selectedAK4Jets[0].pt<140: return False
-        
+            if event.selectedMuons[0].charge==event.selectedElectrons[0].charge : return False
+       
         ######################################################
         ##### HIGH LEVEL VARIABLES FOR SELECTED EVENTS   #####
         ######################################################
@@ -206,89 +206,80 @@ class Analysis(Module):
         event.selectedLeptons=event.selectedElectrons+event.selectedMuons
         event.selectedLeptons.sort(key=lambda x: x.pt, reverse=True)
         
-        lep_id=[lep.id for lep in event.selectedLeptons]
-        lep_pt=[lep.pt for lep in event.selectedLeptons]
-        lep_eta=[lep.eta for lep in event.selectedLeptons]
-        lep_phi=[lep.phi for lep in event.selectedLeptons]
-        lep_iso=[lep.iso for lep in event.selectedLeptons]
-        lep_isiso=[lep.isiso for lep in event.selectedLeptons]
-        lep_dxy=[lep.dxy for lep in event.selectedLeptons]
-        lep_dz=[lep.dz for lep in event.selectedLeptons]
+        lep_id     = [lep.id for lep in event.selectedLeptons]
+        lep_pt     = [lep.pt for lep in event.selectedLeptons]
+        lep_eta    = [lep.eta for lep in event.selectedLeptons]
+        lep_phi    = [lep.phi for lep in event.selectedLeptons]
+        lep_charge = [lep.charge for lep in event.selectedLeptons]
         
-        jet_pt=-1; jet_eta=-999; jet_phi=-999
-        if len(event.selectedAK4Jets):
-            jet_pt=event.selectedAK4Jets[0].pt
-            jet_eta=event.selectedAK4Jets[0].eta
-            jet_phi=event.selectedAK4Jets[0].phi
-                
-        #W boson transverse mass,pt and phi
-        MET_pt=event.MET_pt
-        MET_phi=event.MET_phi
-        if len(event.selectedLeptons):
-          w_mT =  2.*lep_pt[0]*MET_pt*(1.-ROOT.TMath.Cos(ROOT.TVector2.Phi_mpi_pi(lep_phi[0]-MET_phi)))
-          w_mT=ROOT.TMath.Sqrt(w_mT)
-          w_ptvec=ROOT.TVector2(lep_pt[0]*ROOT.TMath.Cos(lep_phi[0])+MET_pt*ROOT.TMath.Cos(MET_phi),
-                              lep_pt[0]*ROOT.TMath.Sin(lep_phi[0])+MET_pt*ROOT.TMath.Sin(MET_phi))
-          w_pt=w_ptvec.Mod()
-          w_phi=w_ptvec.Phi()
-        else:
-          w_mT = w_pt = 1; w_phi = -999
-        
+
         #di-lepton 4-vector
         lepSum = ROOT.TLorentzVector()
-        if len(event.selectedLeptons)==2:
-            for lep in event.selectedLeptons:
-                lepSum+=lep.p4()
-                
-        #multi-jet 4-vector:
-        jetSum = ROOT.TLorentzVector()
-        for jet in event.selectedAK4Jets:
-            jetSum+=jet.p4()
-
-        #proton xi
-        xip = xin = tp = tn = -1
-        for pr in event.selectedProtons:
-            if pr.arm==0: xip=pr.xi; tp=pr.t
-            if pr.arm==1: xin=pr.xi; tn=pr.t
-
+        for lep in event.selectedLeptons:
+            lepSum+=lep.p4()
+		
+		# compute acolpanarity
+        lep1 = event.selectedLeptons[0].p4()
+        lep2 = event.selectedLeptons[1].p4()
+        acol = 1.0-lep1.DeltaPhi(lep2)/math.pi
+	
+        #protons
+        proton_xi     = [p.xi for p in event.selectedProtons]
+        proton_t      = [p.t for p in event.selectedProtons]
+        proton_method = [p.method for p in event.selectedProtons]
+        proton_ThX    = [p.ThX for p in event.selectedProtons]
+        proton_ThY    = [p.ThY for p in event.selectedProtons]
+        proton_rpid   = [p.rpid for p in event.selectedProtons]
+        proton_arm    = [p.arm for p in event.selectedProtons]
+  
+        gen_mll = -1; gen_Yll = 999;
+        if len(event.selectedGenProtons)==2:
+            pz1= event.selectedGenProtons[0].pz
+            pz2= event.selectedGenProtons[1].pz
+            if pz1/pz2<0:
+              xi1=1-abs(pz1)/6500.
+              xi2=1-abs(pz2)/6500.
+              gen_mll = 13000*math.sqrt(xi1*xi2)
+              gen_Yll = 0.5*math.log(xi1/xi2)
+	    
         ## store branches
-        self.out.fillBranch("nano_nJets" ,    len(event.selectedAK4Jets))
-        self.out.fillBranch("nano_nProtons",  len(event.selectedProtons))
-        self.out.fillBranch("nano_nLeptons",  len(event.selectedLeptons))
-        self.out.fillBranch("nano_LepID" ,    lep_id)
-        self.out.fillBranch("nano_LepPT" ,    lep_pt)
-        self.out.fillBranch("nano_LepEta" ,   lep_eta)
-        self.out.fillBranch("nano_LepPhi" ,   lep_phi)
-        self.out.fillBranch("nano_LepIso" ,   lep_iso)
-        self.out.fillBranch("nano_LepIsIso" , lep_isiso)
-        self.out.fillBranch("nano_LepDxy" ,   lep_dxy)
-        self.out.fillBranch("nano_LepDz" ,    lep_dz)
-        self.out.fillBranch("nano_JetPT" ,    jet_pt)
-        self.out.fillBranch("nano_JetEta" ,   jet_eta)
-        self.out.fillBranch("nano_JetPhi" ,   jet_phi)
-        self.out.fillBranch("nano_WMT" ,      w_mT)
-        self.out.fillBranch("nano_WPT" ,      w_pt)
-        self.out.fillBranch("nano_WPhi" ,     w_phi)
-        self.out.fillBranch("nano_mll" ,      lepSum.M())
-        self.out.fillBranch("nano_Yll" ,      lepSum.Rapidity())
-        self.out.fillBranch("nano_Ptll" ,     lepSum.Pt())
-        self.out.fillBranch("nano_Etall",     lepSum.Eta())
-        self.out.fillBranch("nano_Phill",     lepSum.Phi())
-        self.out.fillBranch("nano_mjets",     jetSum.M())
-        self.out.fillBranch("nano_Yjets",     jetSum.Rapidity())
-        self.out.fillBranch("nano_Phijets",   jetSum.Phi())
-        self.out.fillBranch("nano_PTjets",    jetSum.Pt())
-        self.out.fillBranch("nano_xip",       xip)
-        self.out.fillBranch("nano_xin",       xin)
-        self.out.fillBranch("nano_tp",        tp)
-        self.out.fillBranch("nano_tn",        tn)
-        self.out.fillBranch("nano_mX",        (jetSum+lepSum).M())
-        self.out.fillBranch("nano_YX",        (jetSum+lepSum).Rapidity())
+        self.out.fillBranch("nLepCand",           len(event.selectedLeptons))
+        self.out.fillBranch("LepCand_id" ,        lep_id)
+        self.out.fillBranch("LepCand_pt" ,        lep_pt)
+        self.out.fillBranch("LepCand_eta" ,       lep_eta)
+        self.out.fillBranch("LepCand_phi" ,       lep_phi)
+        self.out.fillBranch("LepCand_charge",     lep_charge)
+        self.out.fillBranch("nRecoProtCand",      len(event.selectedProtons))
+        self.out.fillBranch("ProtCand_xi",        proton_xi)
+        self.out.fillBranch("ProtCand_t",         proton_t)
+        self.out.fillBranch("ProtCand_ThX",       proton_ThX)
+        self.out.fillBranch("ProtCand_ThY",       proton_ThY)
+        self.out.fillBranch("ProtCand_rpid",      proton_rpid)
+        self.out.fillBranch("ProtCand_arm",       proton_arm)
+        self.out.fillBranch("ProtCand_ismultirp", proton_method)
+        self.out.fillBranch("nJets" ,             len(event.selectedAK4Jets))
+        self.out.fillBranch("Lep0Pt" ,            lep_pt[0])
+        self.out.fillBranch("Lep1Pt" ,            lep_pt[1])
+        self.out.fillBranch("Lep0Eta" ,           lep_eta[0])
+        self.out.fillBranch("Lep1Eta" ,           lep_eta[1])
+        self.out.fillBranch("Lep0Phi" ,           lep_phi[0])
+        self.out.fillBranch("Lep1Phi" ,           lep_phi[1])
+        self.out.fillBranch("InvMass",            lepSum.M())
+        self.out.fillBranch("Yll",                lepSum.Rapidity())
+        self.out.fillBranch("pTll",               lepSum.Pt())
+        self.out.fillBranch("Acopl",              acol)	
+        if self.isMC:
+            self.out.fillBranch("gen_mll",            gen_mll)
+            self.out.fillBranch("gen_Yll",            gen_Yll)
 
         return True
 
 
 # define modules using the syntax 'name = lambda : constructor' to avoid having them loaded when not needed
-analysis_mu  = lambda : Analysis(channel="mu")
-analysis_el  = lambda : Analysis(channel="el")
-analysis_emu = lambda : Analysis(channel="emu")
+analysis_mumc    = lambda : Analysis(channel="mu", isMC=True)
+analysis_elmc    = lambda : Analysis(channel="el", isMC=True)
+analysis_emumc   = lambda : Analysis(channel="emu",isMC=True)
+
+analysis_mudata  = lambda : Analysis(channel="mu", isMC=False)
+analysis_eldata  = lambda : Analysis(channel="el", isMC=False)
+analysis_emudata = lambda : Analysis(channel="emu",isMC=False)

@@ -13,9 +13,4 @@ keep Jet*
 keep Proton*
 keep PPSLocalTrack*
 keep PV_*
-keep SoftActivityJet*
-keep HLT_HIMu17
-
-#keep custom variables
-keep nIsoTrack*
-
+keep GenProton*

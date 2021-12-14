@@ -7,8 +7,6 @@ cmsrel CMSSW_12_3_0_pre1
 cd CMSSW_12_3_0_pre1/src
 cmsenv
 
-git cms-init
-
 #setup nanoAOD-tools
 git clone https://github.com/cms-nanoAOD/nanoAOD-tools.git PhysicsTools/NanoAODTools
 scram b -j
@@ -35,7 +33,7 @@ scram b -j
 ## Analysis
 
 
-Analysis code is in [DiLep_analysis.py](https://github.com/michael-pitt/CMSDAS-tools/blob/main/python/DiLep_analysis.py), which select events, compute high level variables and write a skimmed output tree
+Analysis code is in [DiLep_analysis.py](https://github.com/michael-pitt/CMSDASTools/blob/main/Analysis/python/DiLep_analysis.py), which select events, compute high level variables and write a skimmed output tree
 
 Two analysis modules can be executed:
 - `analysis_mu`: 2 tight muons with opposite charge, mu_pt>50GeV, Electron veto. 
@@ -43,7 +41,7 @@ Two analysis modules can be executed:
 - `analysis_emu`: 1 tightID/ISO muon, 1 MVAFall17V2IsoWP80 electron, lep_pt>20GeV, and opposite charge.
 
 For each event selection:
-- An appropriate `keep_and_drop` files can be chosen (see list of files [here](https://github.com/michael-pitt/CMSDAS-tools/tree/main/scripts))
+- An appropriate `keep_and_drop` files can be chosen (see list of files [here](https://github.com/michael-pitt/CMSDASTools/tree/main/Analysis/scripts))
 - A corresponding trigger should be set
 
 json file with: [combined_RPIN_CMS_LOWMU.json](https://github.com/michael-pitt/CMSDAS-tools/blob/main/data/combined_RPIN_CMS.json)
@@ -55,8 +53,8 @@ example of running on a file from `SingleMuon` stream
 $CMSSW_BASE/src/PhysicsTools/NanoAODTools/scripts/nano_postproc.py \
 output root://cms-xrd-global.cern.ch//store/data/Run2017H/SingleMuon/NANOAOD/UL2017_MiniAODv2_NanoAODv9-v1/100000/00E28CF6-5CDE-A644-A390-40F2F6613888.root \
 --json data/combined_RPIN_CMS_LOWMU.json \
---bi scripts/keep_Data.txt --bo scripts/keep_and_drop_Data_out.txt \
--c "HLT_HIMu15" -I PPSTools.LowPU2017H.LowPU_analysis analysis_mu
+--bi scripts/keep_in.txt --bo scripts/keep_out.txt \
+-c "HLT_HIMu15" -I CMSDASTools.Analysis.DiLep_analysis analysis_mu
 ```
 
 ### Submitting to condor
