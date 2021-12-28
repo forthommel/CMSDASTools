@@ -10,8 +10,8 @@ class ProtonSelector(ObjectSelector):
                       
     def evalProton(self, proton ):
         
-		# skip aperture cuts for now
-		return True
+        # skip aperture cuts for now
+        return True
         
 
 class ElectronSelector(ObjectSelector):
