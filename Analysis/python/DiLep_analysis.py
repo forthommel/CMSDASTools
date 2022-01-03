@@ -32,8 +32,8 @@ class Analysis(Module):
         self.out.branch("LepCand_eta",       "F",  lenVar = "nLepCand");
         self.out.branch("LepCand_phi",       "F",  lenVar = "nLepCand");
         self.out.branch("LepCand_charge",    "I",  lenVar = "nLepCand");
-        self.out.branch("lep_dxy",           "F",  lenVar = "nLepCand");
-        self.out.branch("lep_dz",            "F",  lenVar = "nLepCand");
+        self.out.branch("LepCand_dxy",       "F",  lenVar = "nLepCand");
+        self.out.branch("LepCand_dz",        "F",  lenVar = "nLepCand");
         self.out.branch("nRecoProtCand",     "I");
         self.out.branch("ProtCand_xi",       "F",  lenVar = "nRecoProtCand");
         self.out.branch("ProtCand_t",        "F",  lenVar = "nRecoProtCand");
@@ -56,8 +56,8 @@ class Analysis(Module):
         self.out.branch("pTll",              "F");
         self.out.branch("Acopl",             "F");
         if self.isMC:
-            self.out.branch("gen_mll",           "F");
-            self.out.branch("gen_Yll",           "F");
+            self.out.branch("gen_mpp",           "F");
+            self.out.branch("gen_Ypp",           "F");
  
         
     def endFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
@@ -232,15 +232,15 @@ class Analysis(Module):
         proton_rpid   = [p.rpid for p in event.selectedProtons]
         proton_arm    = [p.arm for p in event.selectedProtons]
   
-        gen_mll = -1; gen_Yll = 999;
+        gen_mpp = -1; gen_Ypp = 999;
         if len(event.selectedGenProtons)==2:
             pz1= event.selectedGenProtons[0].pz
             pz2= event.selectedGenProtons[1].pz
             if pz1/pz2<0:
               xi1=1-abs(pz1)/6500.
               xi2=1-abs(pz2)/6500.
-              gen_mll = 13000*math.sqrt(xi1*xi2)
-              gen_Yll = 0.5*math.log(xi1/xi2)
+              gen_mpp = 13000*math.sqrt(xi1*xi2)
+              gen_Ypp = 0.5*math.log(xi1/xi2)
 	    
         ## store branches
         self.out.fillBranch("nLepCand",           len(event.selectedLeptons))
@@ -249,6 +249,8 @@ class Analysis(Module):
         self.out.fillBranch("LepCand_eta" ,       lep_eta)
         self.out.fillBranch("LepCand_phi" ,       lep_phi)
         self.out.fillBranch("LepCand_charge",     lep_charge)
+        self.out.fillBranch("LepCand_dxy",        lep_dxy)
+        self.out.fillBranch("LepCand_dz",         lep_dz)
         self.out.fillBranch("nRecoProtCand",      len(event.selectedProtons))
         self.out.fillBranch("ProtCand_xi",        proton_xi)
         self.out.fillBranch("ProtCand_t",         proton_t)
@@ -269,8 +271,8 @@ class Analysis(Module):
         self.out.fillBranch("pTll",               lepSum.Pt())
         self.out.fillBranch("Acopl",              acol)	
         if self.isMC:
-            self.out.fillBranch("gen_mll",            gen_mll)
-            self.out.fillBranch("gen_Yll",            gen_Yll)
+            self.out.fillBranch("gen_mpp",            gen_mpp)
+            self.out.fillBranch("gen_Ypp",            gen_Ypp)
 
         return True
 
