@@ -91,6 +91,9 @@ matchDirectSimOutputs(process, miniAOD=True)
 process.ctppsProtons.fitVtxY = True
 #if false then ndof=1 and chi2 values will be big (filteredProton container will be empty)
                           
+#If interested in the reconstruction of signal protons only (no PU), uncomment this line:
+#process.beamDivergenceVtxGenerator.srcGenParticle = cms.VInputTag(cms.InputTag("prunedGenParticles"))
+
 # Output definition
 process.MINIAODSIMoutput = cms.OutputModule("PoolOutputModule",
     compressionAlgorithm = cms.untracked.string('LZMA'),
