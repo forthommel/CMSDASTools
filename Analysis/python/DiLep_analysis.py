@@ -211,6 +211,8 @@ class Analysis(Module):
         lep_eta    = [lep.eta for lep in event.selectedLeptons]
         lep_phi    = [lep.phi for lep in event.selectedLeptons]
         lep_charge = [lep.charge for lep in event.selectedLeptons]
+        lep_dxy    = [lep.dxy for lep in event.selectedLeptons]
+        lep_dz     = [lep.dz for lep in event.selectedLeptons]
         
 
         #di-lepton 4-vector
