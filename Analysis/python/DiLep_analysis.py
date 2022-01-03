@@ -102,7 +102,7 @@ class Analysis(Module):
                 continue
             
             #require tight (2^1) or tightLepVeto (2^2) [https://twiki.cern.ch/twiki/bin/view/CMS/JetID#nanoAOD_Flags]
-            if j.jetId<4: 
+            if j.jetId<2: 
                 continue
                 
             #check overlap with selected leptons 
@@ -166,7 +166,7 @@ class Analysis(Module):
         #initiate proton selector tools:
         prSel = ProtonSelector('2018C')
         elSel = ElectronSelector()
-        muSel = MuonSelector()
+        muSel = MuonSelector(minPt=20, ID='medium')
         
         # apply object selection
         self.selectMuons(event, muSel)
@@ -177,7 +177,7 @@ class Analysis(Module):
         
         #apply event selection depending on the channel:
         if self.channel=="mu":
-            
+
             # Select events with exactly 2 muons and 0 electrons
             if len(event.selectedElectrons): return False
             if not len(event.selectedMuons)==2: return False

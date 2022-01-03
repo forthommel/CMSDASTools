@@ -67,7 +67,7 @@ process.load('RecoPPS.Configuration.recoCTPPS_cff')
 #message logger
 process.load("FWCore.MessageService.MessageLogger_cfi")
 process.MessageLogger.cerr.threshold = cms.untracked.string('')
-process.MessageLogger.cerr.FwkReport.reportEvery = 100
+process.MessageLogger.cerr.FwkReport.reportEvery = 500
 
 process.maxEvents = cms.untracked.PSet(
     input = cms.untracked.int32(options.maxEvents)
@@ -99,7 +99,7 @@ process.MINIAODSIMoutput = cms.OutputModule("PoolOutputModule",
         dataTier = cms.untracked.string(''),
         filterName = cms.untracked.string('')
     ),
-    fileName = cms.untracked.string('miniAOD_withProtons.root'),
+    fileName = cms.untracked.string(options.outFilename),
     outputCommands = process.MINIAODSIMEventContent.outputCommands
 )
 

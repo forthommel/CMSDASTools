@@ -31,16 +31,16 @@ class ElectronSelector(ObjectSelector):
         return True
         
 class MuonSelector(ObjectSelector):
-    def __init__(self, _minPt = 35, _id = 'tight'):
-        self.minPt = _minPt
-        self.id = _id
+    def __init__(self, minPt = 35, ID = 'tight'):
+        self.minPt = minPt
+        self.id = ID
 
     def evalMuon(self, mu):
-
         if mu.pt < self.minPt: return False
         if abs(mu.eta) > 2.4: return False
         if mu.pfRelIso04_all>0.15: return False
-        if abs(mu.dxybs) > 0.05 or abs(mu.dz) > 1.0: return False
+        #if abs(mu.dxybs) > 0.05 or abs(mu.dz) > 1.0: return False
+        if abs(mu.dxybs) > 0.05: return False
         if self.id == 'tight' and not mu.tightId: return False
         elif self.id == 'medium' and not mu.mediumId: return False
         elif self.id == 'loose' and not mu.looseId: return False
