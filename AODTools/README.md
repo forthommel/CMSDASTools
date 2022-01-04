@@ -46,11 +46,10 @@ cmsRun $CMSSW_BASE/src/CMSDASTools/AODTools/test/produceNANO.py inputFiles=file:
 ### Submitting to condor
 To produce all steps in one shot, you can run the following script:
 ```
-python3 scripts/submitMC.py -c data/cards/DYtoLL_Pt12_TuneCP5_13TeV
+python scripts/produceNANOfromDS.py -d /GGToMuMu_Pt-25_Elastic_13TeV-lpair/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v2/MINIAODSIM
 ```
    - add `-s` if you wish to submit the code to condor.
-   - add `-j` to set the number of jobs.
+   - add `-o` to set the output folder (EOS)
    - add `-n` to set the number of events per job.
    
-
 
