@@ -3,8 +3,8 @@ Production of small ntuples from nanoAODs. These ntuples are used in the measure
 
 ## CMSSW setup
 ```
-cmsrel CMSSW_12_3_0_pre1
-cd CMSSW_12_3_0_pre1/src
+cmsrel CMSSW_10_6_27
+cd CMSSW_10_6_27/src
 cmsenv
 
 #setup nanoAOD-tools
@@ -64,11 +64,18 @@ Run the following command
 python3 $CMSSW_BASE/src/CMSDASTools/Analysis/scripts/runNtuplizer.py --in $CMSSW_BASE/src/CMSDASTools/Analysis/data/listSamples.txt
 ```
 with options
-- `--out`: Output folder (for example `/eos/home-X/$USER/...`
-- `--in`: Input `txt` file with list of datasets or folders where NANOAOD are stored
+- `--out`: Output folder (for example */eos/home-X/$USER/...*)
+- `--in`: Input *txt* file with list of datasets or folders where NANOAOD are stored
 
 NOTE: When executing the script, you will be requested to create a `proxy` in the submission foder:
 
 ```
 voms-proxy-init --voms cms --valid 72:00 --out $PWD/FarmLocalNtuple/myproxy509
+```
+
+### Merging results
+
+To merge the output files, run [haddnano.py](https://github.com/cms-nanoAOD/nanoAOD-tools/blob/master/scripts/haddnano.py) script:
+```
+python3 $CMSSW_BASE/src/PhysicsTools/NanoAODTools/scripts/haddnano.py output.root ListOfROOTFiles
 ```
