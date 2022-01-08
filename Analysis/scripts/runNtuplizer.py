@@ -69,8 +69,8 @@ def buildCondorFile(opt,FarmDirectory):
             filter=ANALYSISCUT[year][channel]
             os.system('mkdir -p {}'.format(output_full))
             for file in file_list:
-              outfile='%s/%s'%(output,os.path.basename(file).replace('.root','_Skim.root'))
-              if os.path.isfile(outfile): continue
+              outfile='%s/%s'%(output_full,os.path.basename(file).replace('.root','_Skim.root'))
+              if os.path.isfile(outfile) and not opt.force: continue
               condor.write('arguments = %s %s %s %s\n'%(prefix+file,'analysis_'+channel+sufix,output_full,filter))
               condor.write('queue 1\n')
 
@@ -131,6 +131,7 @@ def main():
     parser = optparse.OptionParser(usage)
     parser.add_option('-i', '--in',     dest='input',  help='list of input datasets',    default='listSamples.txt', type='string')
     parser.add_option('-o', '--out',      dest='output',   help='output directory',  default='/eos/home-m/mpitt/CMSDAS/ntuples', type='string')
+    parser.add_option('-f', '--force',      dest='force',   help='force resubmission',  action='store_true')
     parser.add_option('-s', '--submit',   dest='submit',   help='submit jobs',       action='store_true')
     (opt, args) = parser.parse_args()
      
