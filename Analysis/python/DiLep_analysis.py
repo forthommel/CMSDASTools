@@ -44,7 +44,6 @@ class Analysis(Module):
         self.out.branch("ProtCand_arm",      "I",  lenVar = "nRecoProtCand");
         self.out.branch("ProtCand_ismultirp","I",  lenVar = "nRecoProtCand");
         self.out.branch("ProtCand_rpid",     "I",  lenVar = "nRecoProtCand");
-        self.out.branch("ProtCand_rpid",     "I",  lenVar = "nRecoProtCand");
         self.out.branch("nJets",             "I");
         self.out.branch("Lep0Pt",            "F");
         self.out.branch("Lep1Pt",            "F");
