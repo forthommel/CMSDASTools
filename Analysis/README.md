@@ -35,7 +35,7 @@ json file are stored in [data](https://github.com/michael-pitt/CMSDASTools/tree/
 
 example of running on a file from `SingleMuon` stream
 ```
-python3 $CMSSW_BASE/src/PhysicsTools/NanoAODTools/scripts/nano_postproc.py \
+python $CMSSW_BASE/src/PhysicsTools/NanoAODTools/scripts/nano_postproc.py \
 output root://cms-xrd-global.cern.ch//store/data/Run2018A/DoubleMuon/NANOAOD/UL2018_MiniAODv2_NanoAODv9-v1/270000/C218937D-A2AC-9949-8E65-D14C50F824AF.root \
 --json ${CMSSW_BASE}/src/CMSDASTools/Analysis/data/CMSgolden_2RPGood_anyarms.json \
 --bi $CMSSW_BASE/src/CMSDASTools/Analysis/scripts/keep_in.txt \
@@ -45,7 +45,7 @@ output root://cms-xrd-global.cern.ch//store/data/Run2018A/DoubleMuon/NANOAOD/UL2
 
 example of running on a MC (`nano.root` can be replaced by any NANOAOD file)
 ```
-python3 $CMSSW_BASE/src/PhysicsTools/NanoAODTools/scripts/nano_postproc.py \
+python $CMSSW_BASE/src/PhysicsTools/NanoAODTools/scripts/nano_postproc.py \
 output nano.root \
 --bi $CMSSW_BASE/src/CMSDASTools/Analysis/scripts/keep_in.txt \
 --bo $CMSSW_BASE/src/CMSDASTools/Analysis/scripts/keep_out.txt \
@@ -61,7 +61,7 @@ The list of datasets should be provided as a `txt` file, for example [listSample
 
 Run the following command
 ```
-python3 $CMSSW_BASE/src/CMSDASTools/Analysis/scripts/runNtuplizer.py --in $CMSSW_BASE/src/CMSDASTools/Analysis/data/listSamples.txt
+python $CMSSW_BASE/src/CMSDASTools/Analysis/scripts/runNtuplizer.py --in $CMSSW_BASE/src/CMSDASTools/Analysis/data/listSamples.txt
 ```
 with options
 - `--out`: Output folder (for example */eos/home-X/$USER/...*)
@@ -77,5 +77,5 @@ voms-proxy-init --voms cms --valid 72:00 --out $PWD/FarmLocalNtuple/myproxy509
 
 To merge the output files, run [haddnano.py](https://github.com/cms-nanoAOD/nanoAOD-tools/blob/master/scripts/haddnano.py) script:
 ```
-python3 $CMSSW_BASE/src/PhysicsTools/NanoAODTools/scripts/haddnano.py output.root ListOfROOTFiles
+python $CMSSW_BASE/src/PhysicsTools/NanoAODTools/scripts/haddnano.py output.root ListOfROOTFiles
 ```

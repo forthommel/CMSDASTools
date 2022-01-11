@@ -3,7 +3,8 @@ drop *
 
 #keep event info
 keep run*
-keep event*
+
+keep luminosityBlock*
 
 #keep nanoAOD content
 keep PV_*
@@ -20,4 +21,4 @@ keep InvMass
 keep Yll
 keep pTll
 keep Acopl
-
+keep EventNum

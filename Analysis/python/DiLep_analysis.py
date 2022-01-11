@@ -26,6 +26,7 @@ class Analysis(Module):
     def beginFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
     
         self.out = wrappedOutputTree
+        self.out.branch("EventNum",          "I");
         self.out.branch("nLepCand",          "I");
         self.out.branch("LepCand_id",        "I",  lenVar = "nLepCand");
         self.out.branch("LepCand_pt",        "F",  lenVar = "nLepCand");
@@ -245,6 +246,7 @@ class Analysis(Module):
               gen_Ypp = 0.5*math.log(xi1/xi2)
 	    
         ## store branches
+        self.out.fillBranch("EventNum",           int(abs(lep_eta[0])*800000000))
         self.out.fillBranch("nLepCand",           len(event.selectedLeptons))
         self.out.fillBranch("LepCand_id" ,        lep_id)
         self.out.fillBranch("LepCand_pt" ,        lep_pt)
