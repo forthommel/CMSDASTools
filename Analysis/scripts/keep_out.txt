@@ -22,3 +22,6 @@ keep Yll
 keep pTll
 keep Acopl
 keep EventNum
+keep gen_*
+keep mpp
+keep Ypp
